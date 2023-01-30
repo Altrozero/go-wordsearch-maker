@@ -8,32 +8,36 @@ import (
 )
 
 func main() {
+	myConfig := config{}
+
 	wordsPtr := flag.String("words",
 		"black, silver, gray, white, maroon, red, purple, fuchsia, green, lime, olive, yellow, navy, blue, teal, aqua, aquamarine",
 		"Comma seperated value of the words to use.")
 
-	flag.BoolVar(&diagonals, "diag", true, "If diagonals should be used or not.")
-	flag.BoolVar(&backwards, "backward", true, "If backwards should be used or not.")
-	flag.BoolVar(&stopFill, "stopFill", false, "Stop filling unused cells with random chars")
-	flag.BoolVar(&capitalize, "cap", true, "If true capatlized, if false lowercase")
+	flag.BoolVar(&myConfig.diagonals, "diag", true, "If diagonals should be used or not.")
+	flag.BoolVar(&myConfig.backwards, "backward", true, "If backwards should be used or not.")
+	flag.BoolVar(&myConfig.stopFill, "stopFill", false, "Stop filling unused cells with random chars")
+	flag.BoolVar(&myConfig.capitalize, "cap", true, "If true capatlized, if false lowercase")
 
-	flag.IntVar(&width, "w", 15, "Width of the grid")
-	flag.IntVar(&height, "h", 15, "Height of the grid")
+	flag.IntVar(&myConfig.width, "w", 15, "Width of the grid")
+	flag.IntVar(&myConfig.height, "h", 15, "Height of the grid")
 
 	flag.Parse()
 
-	parseWords(*wordsPtr)
+	myConfig.words = parseWords(*wordsPtr)
 
 	rand.Seed(time.Now().UnixNano())
-	Generate()
+	grid, placed, failed := Generate(myConfig)
 
-	ConsolePrintGrid()
+	ConsolePrintGrid(grid, myConfig.capitalize, placed, failed)
 }
 
-func parseWords(newWords string) {
-	words = strings.Split(newWords, ",")
+func parseWords(newWords string) []string {
+	words := strings.Split(newWords, ",")
 
 	for i, s := range words {
 		words[i] = strings.TrimSpace(s)
 	}
+
+	return words
 }

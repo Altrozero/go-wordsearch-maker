@@ -7,25 +7,17 @@ import (
 	"strings"
 )
 
-var (
-	words      = []string{}
-	backwards  = false
-	diagonals  = false
-	stopFill   = false
-	capitalize = true
-	width      = 15
-	height     = 15
-)
+type config struct {
+	words      []string
+	backwards  bool
+	diagonals  bool
+	stopFill   bool
+	capitalize bool
+	width      int
+	height     int
+}
 
-var (
-	grid       = [][]rune{}
-	directions = [][2]int{}
-	placed     = []string{}
-	failed     = []string{}
-	chars      = []rune("abcdefghijklmnopqrstuvwxyz")
-)
-
-func createNewGrid() [][]rune {
+func createNewGrid(width, height int) [][]rune {
 	newGrid := make([][]rune, height)
 
 	for i := range newGrid {
@@ -35,7 +27,11 @@ func createNewGrid() [][]rune {
 	return newGrid
 }
 
-func addWordsToGrid() {
+func addWordsToGrid(width, height int, words []string, diagonals, backwards bool) ([][]rune, []string, []string) {
+	grid := createNewGrid(width, height)
+	placed := []string{}
+	failed := []string{}
+
 	// Sort the words by length
 	sort.SliceStable(words, func(i, j int) bool {
 		return len(words[i]) > len(words[j])
@@ -43,36 +39,14 @@ func addWordsToGrid() {
 
 	// Loop over the words
 	for {
-		localDirections := setupPossibleDirections()
+		outcome := false
 
-	directions:
-		for {
-			positions := setupPossiblePositions()
+		outcome, grid = tryFindPlaceOnGrid(grid, words[0], diagonals, backwards)
 
-			// Loop over positions
-			for {
-				row := positions[0] / len(grid)
-				col := positions[0] % len(grid[0])
-
-				if tryPlaceOnGird(words[0], row, col, localDirections[0]) {
-					placed = append(placed, words[0])
-					break directions
-				}
-
-				positions = positions[1:]
-
-				if len(positions) == 0 {
-					break
-				}
-			}
-
-			localDirections = localDirections[1:]
-
-			if len(localDirections) == 0 {
-				failed = append(failed, words[0])
-
-				break
-			}
+		if outcome {
+			placed = append(placed, words[0])
+		} else {
+			failed = append(failed, words[0])
 		}
 
 		words = words[1:]
@@ -81,9 +55,46 @@ func addWordsToGrid() {
 			break
 		}
 	}
+
+	return grid, placed, failed
 }
 
-func tryPlaceOnGird(word string, row int, col int, dir [2]int) bool {
+func tryFindPlaceOnGrid(grid [][]rune, word string, diagonals, backwards bool) (bool, [][]rune) {
+	localDirections := setupPossibleDirections(diagonals, backwards)
+
+	for {
+		positions := setupPossiblePositions(grid)
+
+		// Loop over positions
+		for {
+			row := positions[0] / len(grid)
+			col := positions[0] % len(grid[0])
+			outcome := false
+
+			outcome, grid = tryPutOnGrid(grid, word, row, col, localDirections[0])
+
+			if outcome {
+				return true, grid
+			}
+
+			positions = positions[1:]
+
+			if len(positions) == 0 {
+				break
+			}
+		}
+
+		localDirections = localDirections[1:]
+
+		if len(localDirections) == 0 {
+			break
+		}
+	}
+
+	return false, grid
+}
+
+func tryPutOnGrid(grid [][]rune, word string, row, col int, dir [2]int) (bool, [][]rune) {
 	cloneGrid := make([][]rune, len(grid))
 	for i := range grid {
 		cloneGrid[i] = make([]rune, len(grid[i]))
@@ -94,7 +105,7 @@ func tryPlaceOnGird(word string, row int, col int, dir [2]int) bool {
 	for {
 		if cloneGrid[row][col] != rune(0) &&
 			cloneGrid[row][col] != rune(word[0]) {
-			return false
+			return false, grid
 		}
 
 		cloneGrid[row][col] = rune(word[0])
@@ -109,30 +120,27 @@ func tryPlaceOnGird(word string, row int, col int, dir [2]int) bool {
 		}
 
 		if row < 0 || row >= len(grid) || col < 0 || col >= len(grid[0]) {
-			return false
+			return false, grid
 		}
 	}
 
-	grid = cloneGrid
-
-	return true
+	return true, cloneGrid
 }
 
-func setupPossibleDirections() [][2]int {
+func setupPossibleDirections(diagonals, backwards bool) [][2]int {
+	directions := [][2]int{}
+
 	if len(directions) == 0 {
-		directions = append(directions, [2]int{1, 0})
-		directions = append(directions, [2]int{0, 1})
+		directions = append(directions, [2]int{1, 0}, [2]int{0, 1})
 
 		if diagonals {
 			directions = append(directions, [2]int{1, 1})
 		}
 		if backwards {
-			directions = append(directions, [2]int{-1, 0})
-			directions = append(directions, [2]int{0, -1})
-
-			if diagonals {
-				directions = append(directions, [2]int{-1, -1})
-			}
+			directions = append(directions, [2]int{-1, 0}, [2]int{0, -1})
+		}
+		if diagonals && backwards {
+			directions = append(directions, [2]int{-1, -1})
 		}
 	}
 
@@ -141,7 +149,7 @@ func setupPossibleDirections() [][2]int {
 	return directions
 }
 
-func setupPossiblePositions() []int {
+func setupPossiblePositions(grid [][]rune) []int {
 	pos := []int{}
 	size := len(grid) * len(grid[0])
 
@@ -154,7 +162,8 @@ func setupPossiblePositions() []int {
 	return pos
 }
 
-func fillGrid() {
+func fillGrid(grid [][]rune, stopFill bool) [][]rune {
+	chars := []rune("eeeeeeeeeeeeettttttttttaaaaaaaaaooooooooiiiiiiiinnnnnnnsssssssrrrrrrrhhhhhhdddddlllluuucccmmmfffyyywwwgggppbbvvkxqjz")
 	rand.Shuffle(len(chars), func(i, j int) { chars[i], chars[j] = chars[j], chars[i] })
 
 	for i, line := range grid {
@@ -163,14 +172,21 @@ func fillGrid() {
 				if stopFill {
 					grid[i][j] = rune(' ')
 				} else {
-					grid[i][j] = pullRandCharacter()
+					char := chars[0]
+
+					chars = chars[1:]
+					chars = append(chars, char)
+
+					grid[i][j] = char
 				}
 			}
 		}
 	}
+
+	return grid
 }
 
-func ConsolePrintGrid() {
+func ConsolePrintGrid(grid [][]rune, capitalize bool, placed, failed []string) {
 	output := ""
 
 	for _, line := range grid {
@@ -197,25 +213,9 @@ func ConsolePrintGrid() {
 	fmt.Println(failed)
 }
 
-/*
-Pull a random char from the possible chars and send to the back of the list
-Currently better than random letters as some runs were coming out with a lot
-of X and Z's
-TODO: Replace with a more complete method
-*/
-func pullRandCharacter() rune {
-	char := chars[0]
+func Generate(myConfig config) ([][]rune, []string, []string) {
+	grid, placed, failed := addWordsToGrid(myConfig.width, myConfig.height,
+		myConfig.words, myConfig.diagonals, myConfig.backwards)
 
-	chars = chars[1:]
-	chars = append(chars, char)
-
-	return char
-}
-
-func Generate() {
-	grid = createNewGrid()
-
-	addWordsToGrid()
-
-	fillGrid()
+	return fillGrid(grid, myConfig.stopFill), placed, failed
 }
