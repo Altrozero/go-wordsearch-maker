@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
+const defaultWords = "black, silver, gray, white, maroon, red, purple, fuchsia, green, lime, olive, yellow, navy, blue, teal, aqua, aquamarine"
+
 func main() {
 	myConfig := config{}
 
-	wordsPtr := flag.String("words",
-		"black, silver, gray, white, maroon, red, purple, fuchsia, green, lime, olive, yellow, navy, blue, teal, aqua, aquamarine",
-		"Comma seperated value of the words to use.")
+	wordsPtr := flag.String("words", defaultWords, "Comma seperated value of the words to use.")
 
 	flag.BoolVar(&myConfig.diagonals, "diag", true, "If diagonals should be used or not.")
 	flag.BoolVar(&myConfig.backwards, "backward", true, "If backwards should be used or not.")
