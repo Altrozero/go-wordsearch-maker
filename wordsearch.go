@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 	"sort"
-	"strings"
 )
 
-type config struct {
+const letterFrequency = "eeeeeeeeeeeeettttttttttaaaaaaaaaooooooooiiiiiiiinnnnnnnsssssssrrrrrrrhhhhhhdddddlllluuucccmmmfffyyywwwgggppbbvvkxqjz"
+
+type Config struct {
 	words      []string
 	backwards  bool
 	diagonals  bool
@@ -163,7 +163,7 @@ func setupPossiblePositions(grid [][]rune) []int {
 }
 
 func fillGrid(grid [][]rune, stopFill bool) [][]rune {
-	chars := []rune("eeeeeeeeeeeeettttttttttaaaaaaaaaooooooooiiiiiiiinnnnnnnsssssssrrrrrrrhhhhhhdddddlllluuucccmmmfffyyywwwgggppbbvvkxqjz")
+	chars := []rune(letterFrequency)
 	rand.Shuffle(len(chars), func(i, j int) { chars[i], chars[j] = chars[j], chars[i] })
 
 	for i, line := range grid {
@@ -186,34 +186,7 @@ func fillGrid(grid [][]rune, stopFill bool) [][]rune {
 	return grid
 }
 
-func ConsolePrintGrid(grid [][]rune, capitalize bool, placed, failed []string) {
-	output := ""
-
-	for _, line := range grid {
-		for _, char := range line {
-			output = output + string(char) + " "
-		}
-		output = output + "\n"
-	}
-
-	if capitalize {
-		output = strings.ToUpper(output)
-	} else {
-		output = strings.ToLower(output)
-	}
-
-	fmt.Println(output)
-
-	fmt.Println("Placed Words:")
-	fmt.Println(placed)
-
-	fmt.Println(" ")
-
-	fmt.Println("Failed to place:")
-	fmt.Println(failed)
-}
-
-func Generate(myConfig config) ([][]rune, []string, []string) {
+func Generate(myConfig Config) ([][]rune, []string, []string) {
 	grid, placed, failed := addWordsToGrid(myConfig.width, myConfig.height,
 		myConfig.words, myConfig.diagonals, myConfig.backwards)
 

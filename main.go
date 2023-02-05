@@ -2,13 +2,17 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"math/rand"
 	"strings"
 	"time"
+	"wordsearch/output"
 )
 
 func main() {
-	myConfig := config{}
+	myConfig := Config{}
+	pngConfig := output.PngConfig{}
+	png := false
 
 	wordsPtr := flag.String("words",
 		"black, silver, gray, white, maroon, red, purple, fuchsia, green, lime, olive, yellow, navy, blue, teal, aqua, aquamarine",
@@ -18,6 +22,10 @@ func main() {
 	flag.BoolVar(&myConfig.backwards, "backward", true, "If backwards should be used or not.")
 	flag.BoolVar(&myConfig.stopFill, "stopFill", false, "Stop filling unused cells with random chars")
 	flag.BoolVar(&myConfig.capitalize, "cap", true, "If true capatlized, if false lowercase")
+
+	flag.BoolVar(&png, "png", false, "If to save to png of not, default false. Must also specify the filepath with -file")
+	flag.StringVar(&pngConfig.File, "file", "", "file to save the png to")
+	flag.StringVar(&pngConfig.Title, "title", "Wordsearch", "The title of the wordsearch, default wordsearch")
 
 	flag.IntVar(&myConfig.width, "w", 15, "Width of the grid")
 	flag.IntVar(&myConfig.height, "h", 15, "Height of the grid")
@@ -29,7 +37,15 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 	grid, placed, failed := Generate(myConfig)
 
-	ConsolePrintGrid(grid, myConfig.capitalize, placed, failed)
+	output.ConsolePrintGrid(grid, myConfig.capitalize, placed, failed)
+
+	if png {
+		if pngConfig.File != "" {
+			output.SaveToPNG(grid, myConfig.capitalize, pngConfig, placed)
+		} else {
+			fmt.Println("PNG: No file specified")
+		}
+	}
 }
 
 func parseWords(newWords string) []string {
