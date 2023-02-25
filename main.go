@@ -6,7 +6,8 @@ import (
 	"math/rand"
 	"strings"
 	"time"
-	"wordsearch/output"
+
+	"github.com/Altrozero/go-wordsearch-maker/output"
 )
 
 func main() {
