@@ -1,4 +1,4 @@
-package main
+package wordsearch
 
 import (
 	"math/rand"
@@ -8,13 +8,13 @@ import (
 const letterFrequency = "eeeeeeeeeeeeettttttttttaaaaaaaaaooooooooiiiiiiiinnnnnnnsssssssrrrrrrrhhhhhhdddddlllluuucccmmmfffyyywwwgggppbbvvkxqjz"
 
 type Config struct {
-	words      []string
-	backwards  bool
-	diagonals  bool
-	stopFill   bool
-	capitalize bool
-	width      int
-	height     int
+	Words      []string
+	Backwards  bool
+	Diagonals  bool
+	StopFill   bool
+	Capitalize bool
+	Width      int
+	Height     int
 }
 
 func createNewGrid(width, height int) [][]rune {
@@ -187,8 +187,8 @@ func fillGrid(grid [][]rune, stopFill bool) [][]rune {
 }
 
 func Generate(myConfig Config) ([][]rune, []string, []string) {
-	grid, placed, failed := addWordsToGrid(myConfig.width, myConfig.height,
-		myConfig.words, myConfig.diagonals, myConfig.backwards)
+	grid, placed, failed := addWordsToGrid(myConfig.Width, myConfig.Height,
+		myConfig.Words, myConfig.Diagonals, myConfig.Backwards)
 
-	return fillGrid(grid, myConfig.stopFill), placed, failed
+	return fillGrid(grid, myConfig.StopFill), placed, failed
 }
