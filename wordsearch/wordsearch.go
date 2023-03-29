@@ -67,7 +67,7 @@ func tryFindPlaceOnGrid(grid [][]rune, word string, diagonals, backwards bool) (
 
 		// Loop over positions
 		for {
-			row := positions[0] / len(grid)
+			row := positions[0] / len(grid[0])
 			col := positions[0] % len(grid[0])
 			outcome := false
 
